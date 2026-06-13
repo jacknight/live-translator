@@ -1,0 +1,58 @@
+{
+  "manifest_version": 2,
+  "name": "Live Translator",
+  "version": "0.0.1",
+  "description": "Real-time audio translation with close-captioning on videos. Captures tab audio and streams it to a local companion app for speech-to-text and translation.",
+  "homepage_url": "https://github.com/jacknight/live-translator",
+  "developer": {
+    "name": "Jack Knight",
+    "url": "https://github.com/jacknight"
+  },
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "<all_urls>"
+  ],
+
+  "browser_action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Live Translator",
+    "default_icon": {
+      "16": "src/icons/icon-16.png",
+      "48": "src/icons/icon-48.png",
+      "128": "src/icons/icon-128.png"
+    }
+  },
+
+  "background": {
+    "scripts": ["src/background.js"],
+    "persistent": false
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-captions.js"],
+      "css": ["src/content-captions.css"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "live-translator@jacknight",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent"],
+        "optional": ["technicalAndInteraction"]
+      }
+    }
+  },
+
+  "icons": {
+    "16": "src/icons/icon-16.png",
+    "48": "src/icons/icon-48.png",
+    "128": "src/icons/icon-128.png"
+  }
+}

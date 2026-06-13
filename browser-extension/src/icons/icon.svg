@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4A90D9"/>
+      <stop offset="100%" stop-color="#357ABD"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  <!-- Speech bubble -->
+  <path d="M32 56c0-13.3 14.3-24 32-24s32 10.7 32 24-14.3 24-32 24c-5.5 0-10.8-1-15.6-2.8L32 88l7.2-12.8C35.2 71 32 63.8 32 56z" fill="white" opacity="0.95"/>
+  <!-- CC text -->
+  <text x="64" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#4A90D9">CC</text>
+  <!-- Subtle wave lines -->
+  <path d="M40 95 Q52 88 64 95 Q76 102 88 95" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M44 102 Q54 97 64 102 Q74 107 84 102" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+</svg>

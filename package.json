@@ -1,0 +1,13 @@
+{
+  "name": "live-translator",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Real-time audio translation with browser subtitles and floating captions",
+  "scripts": {
+    "dev:companion": "cd companion-app && npm run dev",
+    "build:companion": "cd companion-app && npm run build",
+    "build:extension": "cd browser-extension && ./build.sh",
+    "lint": "cd companion-app && npm run lint"
+  },
+  "workspaces": ["companion-app"]
+}

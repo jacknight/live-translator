@@ -1,0 +1,127 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install system deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+      - name: Install cmake (macOS)
+        if: runner.os == 'macOS'
+        run: brew install cmake 2>/dev/null || true
+      - name: Install cmake (Windows)
+        if: runner.os == 'Windows'
+        run: choco install cmake --no-progress 2>&1 || true
+
+      - name: Compile whisper.cpp
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/whisper.cpp.git
+          cd whisper.cpp
+          # Enable platform GPU acceleration where available
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGGML_METAL=ON
+          else
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+          fi
+          JOBS=$(python3 -c 'import os; print(os.cpu_count())' 2>/dev/null || echo 4)
+          cmake --build build --config Release -j$JOBS
+          mkdir -p ../companion-app/assets/whisper
+
+          # Copy whisper server binary (preferred — keeps model loaded)
+          SERVER_FOUND=false
+          for src in build/bin/Release/whisper-server.exe build/bin/whisper-server build/bin/whisper-server; do
+            if [ -f "$src" ]; then
+              if [[ "$src" == *.exe ]]; then
+                cp "$src" ../companion-app/assets/whisper/whisper-server.exe
+              else
+                cp "$src" ../companion-app/assets/whisper/whisper-server
+                chmod +x ../companion-app/assets/whisper/whisper-server 2>/dev/null || true
+              fi
+              SERVER_FOUND=true
+              echo "Server binary copied from $src"
+              BIN_DIR=$(dirname "$src")
+              cp "$BIN_DIR"/*.dll ../companion-app/assets/whisper/ 2>/dev/null || true
+              break
+            fi
+          done
+
+          # Copy whisper CLI binary as fallback
+          for src in build/bin/Release/whisper-cli.exe build/bin/Release/whisper-cli build/bin/whisper-cli build/bin/main build/main; do
+            if [ -f "$src" ]; then
+              if [[ "$src" == *.exe ]]; then
+                cp "$src" ../companion-app/assets/whisper/whisper.exe
+              else
+                cp "$src" ../companion-app/assets/whisper/whisper
+                chmod +x ../companion-app/assets/whisper/whisper 2>/dev/null || true
+              fi
+              echo "CLI binary copied from $src"
+              BIN_DIR=$(dirname "$src")
+              cp "$BIN_DIR"/*.dll ../companion-app/assets/whisper/ 2>/dev/null || true
+              break
+            fi
+          done
+
+          if [ ! -f ../companion-app/assets/whisper/whisper-server ] && [ ! -f ../companion-app/assets/whisper/whisper-server.exe ]; then
+            echo "Server binary not found, build may have failed"
+            ls -R build/bin/ 2>/dev/null || true
+            exit 1
+          fi
+          echo "Assets directory:"
+          ls -la ../companion-app/assets/whisper/
+
+      - name: Install Node dependencies
+        run: npm ci
+        working-directory: companion-app
+
+      - name: Build app
+        run: npm run build
+        working-directory: companion-app
+
+      - name: Package
+        run: npx electron-builder --publish=never
+        working-directory: companion-app
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-translator-${{ matrix.os }}
+          path: companion-app/release/
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: live-translator-*
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.dmg
+            *.zip
+            *.exe
+            *.AppImage
+          generate_release_notes: true

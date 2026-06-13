@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html style="height:100%">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Translator Companion</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #16213e;
+      --accent: #4a90d9;
+      --accent-dim: #2a5a8a;
+      --text: #e8e8e8;
+      --text-muted: #a0a0b0;
+      --success: #4caf50;
+      --error: #e74c3c;
+      --warning: #f39c12;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 12px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header { margin-bottom: 10px; flex-shrink: 0; }
+    .header h1 { font-size: 16px; color: var(--accent); }
+    .header p { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .card {
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+    .card.grow { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .card h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #2a2a4a;
+      flex-shrink: 0;
+    }
+    .card h2 .badge {
+      float: right;
+      font-size: 10px;
+      background: var(--accent-dim);
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-weight: normal;
+      text-transform: none;
+    }
+    .refresh-btn {
+      float: right;
+      padding: 1px 8px;
+      border: 1px solid #2a2a4a;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 10px;
+    }
+    .refresh-btn:hover { background: var(--accent-dim); }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--error);
+      flex-shrink: 0;
+    }
+    .status-dot.active { background: var(--success); }
+    .status-label { font-size: 12px; }
+    .status-value { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+
+    /* Model list — scrollable, fills available space */
+    .model-list {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    .model-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      margin-bottom: 1px;
+      font-size: 11px;
+    }
+    .model-row:hover { background: rgba(255,255,255,0.04); }
+    .model-row.active { background: rgba(74,144,217,0.12); border-left: 2px solid var(--accent); }
+    .model-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .model-size { color: var(--text-muted); min-width: 45px; text-align: right; font-size: 10px; }
+    .model-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; }
+    .model-badge.active-badge { background: var(--success); color: #000; }
+    .model-badge.translate-badge { background: var(--accent-dim); }
+    .model-badge.no-translate { background: var(--warning); color: #000; }
+    .model-actions { display: flex; gap: 3px; }
+    .model-actions button {
+      padding: 1px 6px;
+      border: none;
+      border-radius: 3px;
+      font-size: 10px;
+      cursor: pointer;
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+    .model-actions button:hover { filter: brightness(1.2); }
+    .model-actions button.danger { background: var(--error); }
+    .model-actions button.select-btn { background: var(--success); color: #000; font-weight: 600; }
+    .model-actions button:disabled { opacity: 0.4; cursor: default; }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .setting-row label { font-size: 11px; }
+    .setting-row input[type="text"],
+    .setting-row input[type="number"] {
+      padding: 2px 6px;
+      background: #0f3460;
+      border: 1px solid #2a2a4a;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 11px;
+      width: 70px;
+    }
+    .setting-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Live Translator Companion</h1>
+    <p>Background service for real-time translation</p>
+  </div>
+
+  <div class="card" style="flex-shrink:0;">
+    <h2>Service Status</h2>
+    <div class="status-row">
+      <span class="status-dot" id="serverDot"></span>
+      <span class="status-label">WebSocket</span>
+      <span class="status-value" id="serverStatus">Stopped</span>
+    </div>
+    <div class="status-row">
+      <span class="status-dot" id="sttDot"></span>
+      <span class="status-label">Whisper STT</span>
+      <span class="status-value" id="sttStatus">Unavailable</span>
+    </div>
+  </div>
+
+  <div class="card grow">
+    <h2>Models <span class="badge" id="modelCount">0</span>
+      <button class="refresh-btn" id="refreshModels">↻ Refresh</button>
+    </h2>
+    <div class="model-list" id="modelList">
+      <div style="color:var(--text-muted);text-align:center;padding:10px;">Loading models...</div>
+    </div>
+  </div>
+
+  <div class="card" style="flex-shrink:0;">
+    <h2>Settings</h2>
+    <div class="setting-row">
+      <label>WebSocket Port</label>
+      <input type="number" id="wsPort" value="9876">
+    </div>
+    <div class="setting-row">
+      <label>Allow remote connections</label>
+      <input type="checkbox" id="wsRemote" style="width:auto;">
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const els = {
+        serverDot: document.getElementById('serverDot'),
+        serverStatus: document.getElementById('serverStatus'),
+        sttDot: document.getElementById('sttDot'),
+        sttStatus: document.getElementById('sttStatus'),
+        modelList: document.getElementById('modelList'),
+        modelCount: document.getElementById('modelCount'),
+        refreshBtn: document.getElementById('refreshModels'),
+      };
+
+      function setDot(el, state) {
+        el.className = 'status-dot' + (state === 'active' ? ' active' : '');
+      }
+
+      async function loadModels() {
+        if (!window.electronAPI) return;
+        els.modelList.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">Loading...</div>';
+        try {
+          const models = await window.electronAPI.getModels();
+          renderModels(models);
+        } catch (e) {
+          els.modelList.innerHTML = '<div style="color:var(--error);text-align:center;padding:10px;">Failed: ' + e.message + '</div>';
+        }
+      }
+
+      function renderModels(models) {
+        if (!models || models.length === 0) {
+          els.modelList.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">No models</div>';
+          els.modelCount.textContent = '0';
+          return;
+        }
+        const downloaded = models.filter(m => m.downloaded).length;
+        els.modelCount.textContent = downloaded + '/' + models.length;
+
+        els.modelList.innerHTML = models.map(m => {
+          const isActive = m.active;
+          const canTranslate = m.supportsTranslate;
+          let actions = '';
+          if (m.downloaded && isActive) {
+            actions = '<span style="font-size:10px;color:var(--success);font-weight:600;">✓ Active</span>';
+          } else if (m.downloaded) {
+            actions = '<button class="select-btn" data-name="' + m.name + '">Select</button>' +
+                      '<button class="danger" data-name="' + m.name + '">Del</button>';
+          } else {
+            actions = '<button data-name="' + m.name + '">Download</button>';
+          }
+          const translateBadge = canTranslate
+            ? '<span class="model-badge translate-badge" title="Translates">🌐</span>'
+            : '<span class="model-badge no-translate" title="No translate">⚡</span>';
+          return '<div class="model-row' + (isActive ? ' active' : '') + '">' +
+            '<span class="model-name" title="' + m.name + '">' + m.name.replace('ggml-', '').replace('.bin', '') + '</span>' +
+            translateBadge +
+            '<span class="model-size">' + m.size + '</span>' +
+            '<div class="model-actions">' + actions + '</div></div>';
+        }).join('');
+
+        els.modelList.querySelectorAll('button[data-name]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const name = btn.dataset.name;
+            btn.disabled = true;
+            try {
+              if (btn.classList.contains('danger')) {
+                if (!confirm('Delete ' + name + '?')) { btn.disabled = false; return; }
+                await window.electronAPI.deleteModel(name);
+              } else if (btn.classList.contains('select-btn')) {
+                await window.electronAPI.switchModel(name);
+              } else {
+                btn.textContent = '⌛';
+                await window.electronAPI.downloadModel(name);
+              }
+              await loadModels();
+            } catch (e) {
+              alert(e.message);
+              btn.disabled = false;
+              await loadModels();
+            }
+          });
+        });
+      }
+
+      const wsRemoteCheck = document.getElementById('wsRemote');
+      const wsPortInput = document.getElementById('wsPort');
+
+      // Load current settings
+      if (window.electronAPI) {
+        window.electronAPI.getSettings().then(s => {
+          if (s.wsPort) wsPortInput.value = String(s.wsPort);
+          // Checkbox: true if wsHost is 0.0.0.0 (remote), false if 127.0.0.1 (local)
+          wsRemoteCheck.checked = (s.wsHost === '0.0.0.0');
+        });
+
+        // Toggle remote connections
+        wsRemoteCheck.addEventListener('change', () => {
+          const host = wsRemoteCheck.checked ? '0.0.0.0' : '127.0.0.1';
+          window.electronAPI.updateSettings({ wsHost: host });
+        });
+
+        // Save port on change and restart server
+        wsPortInput.addEventListener('change', () => {
+          const newPort = parseInt(wsPortInput.value, 10);
+          if (newPort && newPort > 0 && newPort < 65536) {
+            window.electronAPI.updateSettings({ wsPort: newPort });
+          }
+        });
+
+        window.electronAPI.onStatus((status) => {
+          if (status.server === true) {
+            setDot(els.serverDot, 'active');
+            els.serverStatus.textContent = 'Running on port ' + status.port;
+          } else if (status.server === false) {
+            setDot(els.serverDot, 'inactive');
+            els.serverStatus.textContent = 'Starting...';
+          }
+          if (status.stt === 'Ready') {
+            setDot(els.sttDot, 'active');
+            els.sttStatus.textContent = 'Ready';
+          } else if (status.stt === 'Unavailable') {
+            setDot(els.sttDot, 'inactive');
+            els.sttStatus.textContent = 'Unavailable';
+          } else if (status.stt) {
+            setDot(els.sttDot, 'inactive');
+            els.sttStatus.textContent = status.stt;
+          }
+          if (status.error) {
+            els.serverStatus.textContent = 'Error: ' + status.error;
+          }
+        });
+        loadModels();
+        els.refreshBtn.addEventListener('click', loadModels);
+      }
+    });
+  </script>
+</body>
+</html>

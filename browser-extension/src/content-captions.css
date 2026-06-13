@@ -1,0 +1,50 @@
+/* =============================================================================
+   Live Translator – Caption Styles
+   ============================================================================= */
+
+/* --- Video-aligned Captions ------------------------------------------------ */
+#live-translator-captions {
+  z-index: 2147483647;
+  text-align: center;
+  pointer-events: none;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 4px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#live-translator-captions.lt-visible {
+  opacity: 1;
+}
+
+/* --- Capture Toggle Button ------------------------------------------------- */
+#lt-capture-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483646;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  background: #4a90d9;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s, background 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+#lt-capture-btn:hover { transform: scale(1.08); }
+#lt-capture-btn:active { transform: scale(0.96); }
+#lt-capture-btn.active { background: #c0392b; }

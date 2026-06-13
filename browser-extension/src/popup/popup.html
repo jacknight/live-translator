@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Translator</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Step 1: Welcome / Download -->
+    <div class="step" id="step-welcome">
+      <div class="logo">LT</div>
+      <h1>Live Translator</h1>
+      <p class="desc">Real-time captions for any video. Needs the companion app to run speech-to-text.</p>
+
+      <div class="status-box" id="status-box">
+        <div class="status-icon spinner" id="status-icon"></div>
+        <div class="status-msg" id="status-msg">Looking for companion app...</div>
+      </div>
+
+      <details class="server-settings">
+        <summary>Server address</summary>
+        <div class="server-fields">
+          <label>Host
+            <input type="text" id="ws-host" value="127.0.0.1" placeholder="127.0.0.1" />
+          </label>
+          <label>Port
+            <input type="number" id="ws-port" value="9876" placeholder="9876" min="1" max="65535" />
+          </label>
+          <button class="btn tiny" id="btn-apply">Apply</button>
+          <button class="btn tiny secondary" id="btn-reset">Reset</button>
+        </div>
+      </details>
+
+      <div class="actions" id="actions">
+        <a class="btn primary" id="btn-download" href="https://github.com/jacknight/live-translator/releases" target="_blank">
+          ⬇ Download Companion App
+        </a>
+        <button class="btn secondary" id="btn-retry">↻ Retry Connection</button>
+      </div>
+
+      <p class="hint" id="step-hint">Make sure the app is running and try again.</p>
+    </div>
+
+    <!-- Step 2: Model Setup -->
+    <div class="step" id="step-models" style="display:none">
+      <div class="back-row">
+        <button class="back-btn" id="btn-back">← Back</button>
+        <span class="badge connected">● Connected</span>
+      </div>
+      <h1>Model Setup</h1>
+      <p class="desc">Download a model to start translating. Larger models are more accurate but slower.</p>
+
+      <div class="model-controls">
+        <button class="btn small" id="btn-refresh">↻ Refresh</button>
+      </div>
+
+      <div class="model-list" id="model-list">
+        <div class="loading">Loading models...</div>
+      </div>
+
+      <div class="status-bar">
+        <span id="stt-status">STT: —</span>
+        <button class="btn tiny" id="btn-start-capture">▶ Start</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+appId: com.livetranslator.companion
+productName: Live Translator Companion
+copyright: Copyright (c) 2024
+electronVersion: 28.3.3
+afterPack: scripts/notarize.js
+
+directories:
+  output: release
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - "!dist/**/*.map"
+  - "!dist/**/*.d.ts"
+  - node_modules/**/*
+  - assets/icon.png
+
+extraResources:
+  - from: assets/whisper
+    to: whisper
+
+mac:
+  icon: assets/icon.png
+  target:
+    - dmg
+    - zip
+  identity: null
+  artifactName: "${name}-${version}-mac-${arch}.${ext}"
+
+win:
+  icon: assets/icon.ico
+  target:
+    - nsis
+    - portable
+  artifactName: "${name}-${version}-win-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  runAfterFinish: true
+
+linux:
+  icon: assets/icon.png
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  artifactName: "${name}-${version}-linux-${arch}.${ext}"

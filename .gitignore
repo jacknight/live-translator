@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+release/
+*.log
+.env
+.DS_Store
+Thumbs.db
+
+# Browser extension build artifacts
+browser-extension/dist/
+
+# whisper.cpp (npm-managed build in node_modules/.whisper)
+node_modules/.whisper/
+
+# Legacy local clone (if created before moving to node_modules)
+whisper.cpp/
+
+# Temp audio files
+*.wav
+*.pcm
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+companion-app/assets/whisper/

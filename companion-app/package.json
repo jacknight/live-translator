@@ -1,0 +1,47 @@
+{
+  "name": "live-translator-companion",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Desktop companion for Live Translator – runs STT and translation",
+  "author": "Jack Knight <jack@night.dev>",
+  "repository": "https://github.com/jacknight/live-translator",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "npm run compile && npm run copy-assets",
+    "compile": "tsc",
+    "copy-assets": "node scripts/copy-assets.js",
+    "start": "node dist/server.js",
+    "electron:dev": "tsx watch src/main/main.ts",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:mac": "npm run build && electron-builder --mac",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:linux": "npm run build && electron-builder --linux",
+    "electron:pack": "npm run build && electron-builder --dir",
+    "electron:start": "electron dist/main/main.js",
+    "electron:start:dev": "tsx src/main/main.ts",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "node scripts/postinstall.js",
+    "setup-whisper": "node scripts/setup-whisper.js",
+    "download-model": "node scripts/download-model.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "ws": "^8.16.0",
+    "electron-store": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.0",
+    "eslint": "^8.56.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  }
+}
